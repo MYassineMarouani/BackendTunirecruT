@@ -129,7 +129,7 @@ router.put("/update/:id", upload.single("Image"), async (req, res) => {
         let id = req.params.id;
         let RecruteurToUpdate = req.body;
         if (req.file) {
-            RecruteurToUpdate.Image = req.file.path;
+            RecruteurToUpdate.Image = req.file.filename;
         }
 
         const updatedRecruteur = await Recruteur.findByIdAndUpdate(

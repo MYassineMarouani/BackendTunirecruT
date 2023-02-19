@@ -104,17 +104,18 @@ router.get('/getall', (req, res) => {
 // get offer by idRecruter 
 router.get("/getbyidrecruter/:idRecruter", async (req, res) => {
     try {
-        const offer = await Offre.findOne({ idRecruter: req.params.idRecruter });
-
-        if (!offer) {
-            return res.status(404).json({ msg: "Offer not found" });
-        }
-
-        res.json(offer);
+      const offers = await Offre.find({ idRecruter: req.params.idRecruter });
+  
+      if (!offers) {
+        return res.status(404).json({ msg: "Offers not found" });
+      }
+  
+      res.json(offers);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ msg: "Server error" });
+      console.error(err.message);
+      res.status(500).json({ msg: "Server error" });
     }
-});
+  });
+  
 
 module.exports = router;

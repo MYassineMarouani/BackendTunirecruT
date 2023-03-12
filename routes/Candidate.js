@@ -1,5 +1,7 @@
 const express = require('express');
-const multer  = require('multer');
+const multer = require('multer');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const Candidate = require('../models/Candidate');
 const jwt = require('jsonwebtoken');
 const storage = multer.diskStorage({
@@ -67,23 +69,23 @@ router.post('/login', async (req, res) => {
 router.get('/getbyid/:id', (req, res) => {
   let id = req.params.id;
   Candidate.findOne({ _id: id }).then(
-      (data) => {
-          res.send(data);
-      },
-      (err) => {
-          res.send(err);
-      }
+    (data) => {
+      res.send(data);
+    },
+    (err) => {
+      res.send(err);
+    }
   );
 })
 // get all
 router.get('/getall', (req, res) => {
   Candidate.find().then(
-      (Offre) => {
-          res.send(Offre)
-      },
-      (err) => {
-          console.log(err);
-      }
+    (Offre) => {
+      res.send(Offre)
+    },
+    (err) => {
+      console.log(err);
+    }
   )
 });
 // PUT /candidates/:id
@@ -115,6 +117,77 @@ router.put('/update/:id', upload.fields([
     res.status(400).send(error);
   }
 });
+
+// POST /candidates/reset-password
+const secret = 'your_jwt_secret';
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    if (!req.body.email) {
+      return res.status(400).send('Email is required');
+    }
+
+    const candidate = await Candidate.findOne({
+      email: req.body.email
+    });
+
+    if (!candidate) {
+      return res.status(404).send('No candidate found with that email address');
+    }
+
+    // Generate a password reset token
+    const payload = {
+      id: candidate._id,
+      email: candidate.email
+    };
+    const resetToken = jwt.sign(payload, secret, { expiresIn: '1h' });
+
+    candidate.resetPasswordToken = resetToken;
+    candidate.resetPasswordExpires = Date.now() + 3600000; // Expires in 1 hour
+    await candidate.save();
+
+    // Send password reset email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'marouanimedyassine@gmail.com',
+        pass: 'kzgcopmmtuerwhpz'
+      }
+    });
+
+    const mailOptions = {
+      from: 'marouanimedyassine@gmail.com',
+      to: candidate.email,
+      subject: 'Password Reset Request',
+      text: `Hello ${candidate.name},
+
+We received a request to reset your password. Please follow the link below to reset your password:
+
+http://localhost:4200/reset-password/${resetToken}
+
+If you did not request a password reset, please ignore this message.
+
+Best regards,
+Your Company`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error(error.message);
+        return res.status(500).send('Error sending password reset email');
+      }
+      console.log(`Password reset email sent: ${info.response}`);
+      res.send('Password reset email sent');
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+
+
 
 
 

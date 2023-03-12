@@ -55,6 +55,20 @@ router.get("/getbyidOffer/:idOffer", async (req, res) => {
       res.status(500).json({ msg: "Server error" });
     }
   });
+  // update
+  router.put('/update/:id',  (req, res) => {
+    let id = req.params.id;
+    let Applytoupdate = req.body;
+
+    Apply.findByIdAndUpdate({ _id: id }, Applytoupdate, { new: true }).then(
+        (updatedApply) => {
+            res.send(updatedApply);
+        },
+        (err) => {
+            res.send(err);
+        }
+    );
+});
 
 
 

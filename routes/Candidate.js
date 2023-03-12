@@ -151,7 +151,7 @@ router.post('/reset-password', async (req, res) => {
       service: 'gmail',
       auth: {
         user: 'marouanimedyassine@gmail.com',
-        pass: 'kzgcopmmtuerwhpz'
+        pass: 'kzgcopmmtuerwhp'
       }
     });
 
